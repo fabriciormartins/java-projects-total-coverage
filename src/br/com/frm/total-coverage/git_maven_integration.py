@@ -80,8 +80,8 @@ def consolidate_coverages():
         consolidate_reports.consolidate_coverage_reports(project_directorie_reports)
 
 def is_modified_last_one_hour(path:str):
-    if os.listdir(path)==0:
-       return False
+    if not os.path.exists(path=path) or len(os.listdir(path=path))==0:
+        return False
 
      # Obtém a data de modificação do diretório
     data_modificacao = datetime.fromtimestamp(os.path.getmtime(path))
@@ -89,8 +89,8 @@ def is_modified_last_one_hour(path:str):
     # Calcula a diferença entre a data atual e a data de modificação
     diferenca = datetime.now() - data_modificacao
     
-    # Verifica se a diferença é menor que 1 hora
-    return diferenca < timedelta(hours=1)
+    # Verifica se a diferença é menor que 2 horas
+    return diferenca < timedelta(hours=2)
 
 def remove_repositorie_files():
       shutil.rmtree(diretorio_destino)
