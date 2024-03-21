@@ -2,6 +2,7 @@ import shutil
 import subprocess
 import re
 import os
+from datetime import datetime, timedelta
 from consolidate_coverage_reports import ConsolidateCoverageReports
 
    
@@ -9,6 +10,11 @@ projects_directories = []
 
 # Lendo lista de Repositórios e Executando o clone do Git
 def clone_repositories_of_file(arquivo_repositorios, diretorio_destino):
+    if(os.path.getsize(arquivo_repositorios) ==0):
+        path_repositories = os.listdir(diretorio_destino)
+        for path in path_repositories:
+               projects_directories.append(f"{diretorio_destino}/{path}")
+        return
     with open(arquivo_repositorios, 'r') as f:
         for linha in f:
             url_repositorio = linha.strip()  # Remover espaços em branco e caracteres de nova linha
@@ -48,6 +54,11 @@ def extract_repositorie_name(url_repositorio):
 def run_tests(caminho_projeto):
     maven_compile_command = ["mvn", "test", "-U", "-q"]
     try:
+        target_path = f"{caminho_projeto}/target"
+        if(is_modified_last_one_hour(target_path)):
+            print(f"\n\n\t {target_path} has files with not change")
+            return
+                
         print(f"\n Executando testes projeto {caminho_projeto}")
         subprocess.run(maven_compile_command, check=True, cwd=caminho_projeto)
         print("\n Testes do projeto executados com sucesso!")
@@ -67,6 +78,19 @@ def consolidate_coverages():
     if len(project_directorie_reports) > 0:
         consolidate_reports = ConsolidateCoverageReports()
         consolidate_reports.consolidate_coverage_reports(project_directorie_reports)
+
+def is_modified_last_one_hour(path:str):
+    if os.listdir(path)==0:
+       return False
+
+     # Obtém a data de modificação do diretório
+    data_modificacao = datetime.fromtimestamp(os.path.getmtime(path))
+    
+    # Calcula a diferença entre a data atual e a data de modificação
+    diferenca = datetime.now() - data_modificacao
+    
+    # Verifica se a diferença é menor que 1 hora
+    return diferenca < timedelta(hours=1)
 
 def remove_repositorie_files():
       shutil.rmtree(diretorio_destino)
